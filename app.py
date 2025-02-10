@@ -2,6 +2,7 @@
 
 from flask import Flask, render_template, request, jsonify
 import sys
+from pathlib import Path
 import os
 import subprocess
 import logging
@@ -9,10 +10,12 @@ import nbformat
 from nbconvert import PythonExporter
 import numpy as np
 import pandas as pd
-from mlops_project.pipeline.prediction import PredictionPipeline
+
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), 'mlops_project')))
+# from mlops_project.pipeline.prediction import PredictionPipeline
+from pipeline.prediction import PredictionPipeline
 
 app = Flask(__name__)
-sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 
 # Configure logging
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
