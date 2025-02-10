@@ -1,13 +1,15 @@
-# from src.mlops_project.logger import logging
+#!/usr/bin/env python3
 
-# logging.info("Logging has started")
-# logging.debug("This is a debug message")
+from src.mlops_project.logger import logging
 
-# from src.mlops_project.exception import MyException
-# import sys
+logging.info("Logging has started")
+logging.debug("This is a debug message")
 
-# try:
-#     a = 1+'Z'
-# except Exception as e:
-#     logging.info(e)
-#     raise MyException(e, sys) from e
+from src.mlops_project.exception import MyException
+import sys
+
+try:
+    a = 1+'Z'
+except Exception as e:
+    logging.info(e)
+    raise MyException(e, sys) from e
