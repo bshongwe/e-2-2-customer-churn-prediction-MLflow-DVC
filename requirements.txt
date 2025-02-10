@@ -1,0 +1,11 @@
+ipykernel
+pandas
+numpy
+matplotlib
+seaborn
+scikit-learn
+python-box
+pyYAML
+mlflow
+dagshub
+-e .
