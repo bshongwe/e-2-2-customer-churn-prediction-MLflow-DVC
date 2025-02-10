@@ -3,7 +3,7 @@ artifacts_root: artifacts
 
 data_ingestion:
   root_dir: artifacts/data_ingestion
-  source_URL: https://github.com/bshongwe/e-2-e-customer-churn-prediction-MLflow-DVC/raw/main/data/Churn_Modelling.zip
+  source_URL: https://github.com/bshongwe/e-2-2-customer-churn-prediction-MLflow-DVC/raw/main/data/Churn_Modelling.zip
   local_data_file: artifacts/data_ingestion/data.zip
   unzip_dir: artifacts/data_ingestion
 
