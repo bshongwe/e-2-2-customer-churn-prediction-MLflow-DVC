@@ -122,7 +122,7 @@ jobs:
           pip install -r requirements.txt
 
       - name: Evaluate model
-        run: python evaluate_model.py
+        run: python scripts/evaluate_model.py
 
   deploy:
     runs-on: ubuntu-latest
