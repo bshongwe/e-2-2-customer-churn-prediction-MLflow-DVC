@@ -1,3 +1,9 @@
+![Visits Badge](https://badges.pufler.dev/visits/bshongwe/e-2-2-customer-churn-prediction-MLflow-DVC)
+![GitHub Repo Stars](https://img.shields.io/github/stars/bshongwe/e-2-2-customer-churn-prediction-MLflow-DVC)
+![GitHub Forks](https://img.shields.io/github/forks/bshongwe/e-2-2-customer-churn-prediction-MLflow-DVC)
+![GitHub Issues](https://img.shields.io/github/issues/bshongwe/e-2-2-customer-churn-prediction-MLflow-DVC)
+![GitHub License](https://img.shields.io/github/license/bshongwe/e-2-2-customer-churn-prediction-MLflow-DVC)
+
 # 🚀 End-to-End Customer Churn Prediction using MLflow & DVC  
 
 An end-to-end machine learning project for predicting **customer churn**, utilizing **MLflow** for experiment tracking and **DVC** for data versioning. This project follows a modular approach, covering **data ingestion, validation, transformation, model training, and evaluation**.
