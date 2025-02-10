@@ -6,10 +6,10 @@ with open("README.md", "r", encoding="utf-8") as f:
 
 __version__ = "0.0.0"
 
-REPO_NAME = "End-to-End-Customer-Churn-Prediction-using-MLflow-and-DVC"
-AUTHOR_USER_NAME = "KartikGarg20526"
+REPO_NAME = "e-2-2-customer-churn-prediction-MLflow-DVC"
+AUTHOR_USER_NAME = "bshongwe"
 SRC_REPO = "mlops-project"
-AUTHOR_EMAIL = "kartik.20526@sscbs.du.ac.in"
+AUTHOR_EMAIL = "dru.da.beat.hustle@gmail.com"
 
 
 setuptools.setup(
