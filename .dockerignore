@@ -1,0 +1,42 @@
+# Ignore directories and files generally not needed in the container
+.git
+.gitignore
+__pycache__
+*.pyc
+*.pyo
+*.pyd
+.Python
+env
+.venv
+.vscode
+.ipynb_checkpoints
+*.ipynb
+.DS_Store
+
+# Ignore specific files if they're not needed in the container
+requirements.txt.lock
+*.log
+
+# Ignore test files unless they're needed for testing within the container
+tests
+
+# Ignore documentation or other large directories unless explicitly needed
+docs
+data  # Assuming data isn't part of the container build or should be fetched during runtime
+
+# Ignore any IDE configuration files
+.idea
+.pydevproject
+
+# Ignore any build artifacts or temporary files
+build
+dist
+*.egg-info
+
+# Ignore your Docker configuration
+.dockerignore
+Dockerfile
+
+# Ignore any specific configuration or secret files if present
+config.ini
+*.env
