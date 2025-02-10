@@ -41,15 +41,17 @@ The project is organized as follows:
 
 ---
 
-## ⚡ CI/CD Pipeline  
+## 🚀 CI/CD Pipeline Overview 🚀🎯
 
-This project includes a **CI/CD pipeline** powered by **GitHub Actions**, automating key ML lifecycle steps:
+This project uses **GitHub Actions** to automate the end-to-end **ML workflow**, ensuring efficient and reliable execution of each stage.  
 
-1. **📥 Data Ingestion** - Downloads and extracts dataset  
-2. **✅ Data Validation** - Checks dataset integrity  
-3. **🔄 Data Transformation** - Preprocesses and transforms data  
-4. **📊 Model Training** - Trains a machine learning model  
-5. **📈 Model Evaluation** - Assesses model performance  
+| 🔧 **Job**               | 📌 **Description** |
+|-------------------------|--------------------|
+| 📥 **Data Ingestion**   | Downloads the dataset from a secure location and extracts it for further processing. |
+| ✅ **Data Validation**  | Ensures the integrity and correctness of the ingested data before transformation. |
+| 🔄 **Data Transformation** | Processes the validated data by cleaning and restructuring it for training. |
+| 🤖 **Model Training**   | Trains a machine learning model using the transformed data. |
+| 📊 **Model Evaluation** | Assesses the performance of the trained model to ensure accuracy and reliability. |
 
 ---
 
