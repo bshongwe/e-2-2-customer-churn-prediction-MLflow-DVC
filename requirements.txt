@@ -8,4 +8,8 @@ python-box
 pyYAML
 mlflow
 dagshub
+dvc
+Flask
+Flask-Cors
+gunicorn
 -e .
