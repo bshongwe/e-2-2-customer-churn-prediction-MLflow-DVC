@@ -100,9 +100,31 @@ jobs:
           python -m pip install --upgrade pip
           pip install -r requirements.txt
 
-      - name: Train model
-        run: python train_model.py
-        continue-on-error: true
+      - name: Generate test data for evaluation
+        run: python generate_test_data.py
+
+      - name: Train model with dummy data
+        run: python train_model.py --use_dummy
+
+      - name: Verify model file
+        run: |
+          ls -l models/model.pkl
+          file models/model.pkl
+          echo "Model file size: $(stat -f %z models/model.pkl) bytes"
+
+      - name: Upload model artifact
+        uses: actions/upload-artifact@v3
+        with:
+          name: model
+          path: models/model.pkl
+
+      - name: Upload test data artifacts
+        uses: actions/upload-artifact@v3
+        with:
+          name: test-data
+          path: |
+            data/test_data.csv
+            data/test_labels.csv
 
   model_evaluation:
     runs-on: ubuntu-latest
@@ -121,13 +143,32 @@ jobs:
           python -m pip install --upgrade pip
           pip install -r requirements.txt
 
+      - name: Download model artifact
+        uses: actions/download-artifact@v3
+        with:
+          name: model
+          path: models/
+
+      - name: Download test data artifacts
+        uses: actions/download-artifact@v3
+        with:
+          name: test-data
+          path: data/
+
+      - name: Verify downloaded files
+        run: |
+          ls -l models/model.pkl
+          file models/model.pkl
+          echo "Model file size: $(stat -f %z models/model.pkl) bytes"
+          ls -l data/test_data.csv data/test_labels.csv
+
       - name: Evaluate model
         run: python scripts/evaluate_model.py
 
   deploy:
     runs-on: ubuntu-latest
-    needs: model_evaluation  # Deployment depends on model evaluation finishing
-    if: github.ref == 'refs/heads/main'  # Only deploy when pushing to main
+    needs: model_evaluation
+    if: github.ref == 'refs/heads/main'
     steps:
       - name: Checkout repository
         uses: actions/checkout@v3
@@ -141,6 +182,12 @@ jobs:
         run: |
           python -m pip install --upgrade pip
           pip install -r requirements.txt
+
+      - name: Download model artifact
+        uses: actions/download-artifact@v3
+        with:
+          name: model
+          path: models/
 
       - name: Build Docker image
         run: |
