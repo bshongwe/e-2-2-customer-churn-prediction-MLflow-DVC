@@ -60,8 +60,9 @@ def train_model(X, y, model_path='models/model.pkl'):
         model_size = os.path.getsize(model_path)
         print(f"Model file size: {model_size} bytes")
         if model_size < 1024:  # Arbitrary threshold, adjust as needed
-            print("Warning: Model file size is unusually small, it might be corrupted.", file=sys.stderr)
-        
+            print("Error: Model file size is unusually small, it might be corrupted.", file=sys.stderr)
+            raise ValueError("Model file is empty or corrupted.")
+
         # Verify model can be loaded
         try:
             loaded_model = joblib.load(model_path)
