@@ -7,6 +7,7 @@ from sklearn.datasets import make_classification
 from sklearn.model_selection import train_test_split
 import joblib
 import argparse
+import os
 
 def generate_dummy_data():
     """Generate and return dummy data for model training."""
@@ -15,27 +16,44 @@ def generate_dummy_data():
 
 def load_real_data(data_path, target_column):
     """Load real data from a CSV file."""
-    data = pd.read_csv(data_path)
-    X = data.drop(target_column, axis=1)
-    y = data[target_column]
-    return X, y
+    try:
+        data = pd.read_csv(data_path)
+        X = data.drop(target_column, axis=1)
+        y = data[target_column]
+        return X, y
+    except Exception as e:
+        print(f"Error loading data: {e}")
+        raise
 
 def train_model(X, y, model_path='models/model.pkl'):
     """Train a Random Forest Classifier and save it."""
-    # Split the data into training and testing sets
-    X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
+    try:
+        # Split the data into training and testing sets
+        X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
 
-    # Train the model
-    rf = RandomForestClassifier(n_estimators=100, random_state=42)
-    rf.fit(X_train, y_train)
-    
-    # Evaluate model on test data
-    accuracy = rf.score(X_test, y_test)
-    print(f"Model accuracy: {accuracy:.2f}")
+        # Train the model
+        rf = RandomForestClassifier(n_estimators=100, random_state=42)
+        rf.fit(X_train, y_train)
+        
+        # Evaluate model on test data
+        accuracy = rf.score(X_test, y_test)
+        print(f"Model accuracy: {accuracy:.2f}")
 
-    # Save the model
-    joblib.dump(rf, model_path)
-    print(f"Model saved at: {model_path}")
+        # Ensure the models directory exists
+        os.makedirs(os.path.dirname(model_path), exist_ok=True)
+
+        # Save the model
+        joblib.dump(rf, model_path)
+        print(f"Model saved at: {model_path}")
+
+        # Verify the saved model
+        model_size = os.path.getsize(model_path)
+        print(f"Model file size: {model_size} bytes")
+        if model_size < 1024:  # Arbitrary threshold, adjust as needed
+            print("Warning: Model file size is unusually small, it might be corrupted.")
+    except Exception as e:
+        print(f"Error training or saving model: {e}")
+        raise
 
 def main():
     parser = argparse.ArgumentParser(description="Train a Random Forest model with either dummy or real data.")
