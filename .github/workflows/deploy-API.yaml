@@ -8,6 +8,7 @@ on:
 env:
   RENDER_API_URL: https://api.render.com/v1/services
   LOG_FILE: deploy.log
+  RENDER_APP_URL: ${{ secrets.RENDER_APP_URL }}
 
 jobs:
   deploy:
@@ -16,7 +17,7 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v3
         with:
-          fetch-depth: 0  # Fetch all history for potential versioning
+          fetch-depth: 0
 
       - name: Set up Python
         uses: actions/setup-python@v4
@@ -70,8 +71,25 @@ jobs:
             echo "No deployment response file found" >> $LOG_FILE
           fi
 
+      - name: Trigger Training on Deploy
+        if: success()
+        run: |
+          echo "Triggering training endpoint..." >> $LOG_FILE
+          curl -X GET "https://${{ env.RENDER_APP_URL }}/train" \
+            -H "Accept: application/json" \
+            -o train_response.json \
+            -w "%{http_code}" \
+            -s
+          HTTP_STATUS=$?
+          echo "Training HTTP status: $HTTP_STATUS" >> $LOG_FILE
+          if [ $HTTP_STATUS -ne 200 ]; then
+            cat train_response.json >> $LOG_FILE
+            echo "Training failed with status $HTTP_STATUS" >> $LOG_FILE
+            exit 1
+          fi
+
       - name: Upload deployment log
-        uses: actions/cache@v3
+        uses: actions/upload-artifact@v3
         if: always()
         with:
           name: deployment-log
@@ -95,4 +113,4 @@ jobs:
         with:
           status: ${{ job.status }}
           color: good
-          message: Deployment to Render successful for ${{ github.repository }} on ${{ github.ref }} at ${{ github.sha }}. Check logs for details.
+          message: Deployment to Render successful for ${{ github.repository }} on ${{ github.ref }} at ${{ github.sha }}. Training triggered. Check at: https://${{ env.RENDER_APP_URL }}/

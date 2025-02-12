@@ -37,9 +37,12 @@ jobs:
         env:
           DATA_URL: ${{ secrets.DATA_URL }}
         run: |
+          echo "Downloading data from ${DATA_URL}..." >> $LOG_FILE
           wget -O ${GITHUB_WORKSPACE}/artifacts/data_ingestion/data.zip $DATA_URL
           unzip ${GITHUB_WORKSPACE}/artifacts/data_ingestion/data.zip -d ${GITHUB_WORKSPACE}/artifacts/data_ingestion/
         continue-on-error: true
+        env:
+          LOG_FILE: ${{ env.LOG_FILE }}
 
   data_validation:
     runs-on: ubuntu-latest
@@ -59,8 +62,12 @@ jobs:
           pip install -r requirements.txt
 
       - name: Validate data
-        run: python validate_data.py
+        run: |
+          echo "Validating data..." >> $LOG_FILE
+          python validate_data.py
         continue-on-error: true
+        env:
+          LOG_FILE: ${{ env.LOG_FILE }}
 
   data_transformation:
     runs-on: ubuntu-latest
@@ -80,8 +87,12 @@ jobs:
           pip install -r requirements.txt
 
       - name: Transform data
-        run: python transform_data.py
+        run: |
+          echo "Transforming data..." >> $LOG_FILE
+          python transform_data.py
         continue-on-error: true
+        env:
+          LOG_FILE: ${{ env.LOG_FILE }}
 
   model_training:
     runs-on: ubuntu-latest
@@ -101,25 +112,34 @@ jobs:
           pip install -r requirements.txt
 
       - name: Generate test data for evaluation
-        run: python generate_test_data.py
+        run: |
+          echo "Generating test data..." >> $LOG_FILE
+          python generate_test_data.py
+        env:
+          LOG_FILE: ${{ env.LOG_FILE }}
 
       - name: Train model with dummy data
-        run: python train_model.py --use_dummy
+        run: |
+          echo "Training model with dummy data..." >> $LOG_FILE
+          python train_model.py --use_dummy --model_path models/model.pkl
+        env:
+          LOG_FILE: ${{ env.LOG_FILE }}
 
       - name: Verify model file
         run: |
-          ls -l models/model.pkl
-          file models/model.pkl
-          echo "Model file size: $(stat -f %z models/model.pkl) bytes"
+          echo "Verifying model file..." >> $LOG_FILE
+          ls -l models/model.pkl || echo "Model file not found" >> $LOG_FILE
+          file models/model.pkl || echo "Cannot get file type" >> $LOG_FILE
+          echo "Model file size: $(stat -f %z models/model.pkl 2>> $LOG_FILE || echo '0') bytes" >> $LOG_FILE
 
       - name: Upload model artifact
-        uses: actions/cache@v3
+        uses: actions/upload-artifact@v3
         with:
           name: model
           path: models/model.pkl
 
       - name: Upload test data artifacts
-        uses: actions/cache@v3
+        uses: actions/upload-artifact@v3
         with:
           name: test-data
           path: |
@@ -157,13 +177,18 @@ jobs:
 
       - name: Verify downloaded files
         run: |
-          ls -l models/model.pkl
-          file models/model.pkl
-          echo "Model file size: $(stat -f %z models/model.pkl) bytes"
-          ls -l data/test_data.csv data/test_labels.csv
+          echo "Verifying downloaded files..." >> $LOG_FILE
+          ls -l models/model.pkl || echo "Model file not found" >> $LOG_FILE
+          file models/model.pkl || echo "Cannot get file type" >> $LOG_FILE
+          echo "Model file size: $(stat -f %z models/model.pkl 2>> $LOG_FILE || echo '0') bytes" >> $LOG_FILE
+          ls -l data/test_data.csv data/test_labels.csv || echo "Test data files not found" >> $LOG_FILE
 
       - name: Evaluate model
-        run: python scripts/evaluate_model.py
+        run: |
+          echo "Evaluating model..." >> $LOG_FILE
+          python scripts/evaluate_model.py
+        env:
+          LOG_FILE: ${{ env.LOG_FILE }}
 
   deploy:
     runs-on: ubuntu-latest
@@ -210,7 +235,7 @@ jobs:
         if: success()
         run: |
           echo ${{ env.IMAGE_TAG }} > current_deployment.txt
-          cat current_deployment.txt
+          cat current_deployment.txt >> $LOG_FILE
 
       - name: Deploy to Server via SSH
         uses: appleboy/ssh-action@master
@@ -248,7 +273,7 @@ jobs:
             fi
 
       - name: Upload deployment log
-        uses: actions/cache@v3
+        uses: actions/upload-artifact@v3
         if: always()
         with:
           name: deployment-log
