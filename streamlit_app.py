@@ -3,7 +3,8 @@
 import streamlit as st
 import pandas as pd
 import numpy as np
-from mlops_project.pipeline.prediction.prediction_pipeline import PredictionPipeline
+# from mlops_project.pipeline.prediction.prediction_pipeline import PredictionPipeline
+from mlops_project.pipeline.prediction import PredictionPipeline
 import os
 import logging
 from pathlib import Path

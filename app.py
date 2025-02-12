@@ -12,7 +12,8 @@ import numpy as np
 import pandas as pd
 
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), 'mlops_project')))
-from pipeline.prediction import PredictionPipeline
+# from pipeline.prediction import PredictionPipeline
+from mlops_project.pipeline.prediction import PredictionPipeline
 
 app = Flask(__name__)
 
