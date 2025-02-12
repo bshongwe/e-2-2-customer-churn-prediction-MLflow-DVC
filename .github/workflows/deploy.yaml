@@ -45,8 +45,6 @@ jobs:
           wget -O ${GITHUB_WORKSPACE}/artifacts/data_ingestion/data.zip $DATA_URL
           unzip ${GITHUB_WORKSPACE}/artifacts/data_ingestion/data.zip -d ${GITHUB_WORKSPACE}/artifacts/data_ingestion/
         continue-on-error: true  # Non-critical: allow pipeline to proceed if data download fails, log error
-        env:
-          LOG_FILE: ${{ env.LOG_FILE }}
 
   data_validation:
     runs-on: ubuntu-latest
@@ -66,16 +64,12 @@ jobs:
           python -m pip install --upgrade pip
           pip install -r requirements.txt
         continue-on-error: false  # Critical: dependencies must be installed
-        env:
-          LOG_FILE: ${{ env.LOG_FILE }}
 
       - name: Validate data
         run: |
           echo "Validating data..." >> $LOG_FILE
           python validate_data.py
         continue-on-error: true  # Non-critical: allow pipeline to proceed if validation fails, log error
-        env:
-          LOG_FILE: ${{ env.LOG_FILE }}
 
   data_transformation:
     runs-on: ubuntu-latest
@@ -95,16 +89,12 @@ jobs:
           python -m pip install --upgrade pip
           pip install -r requirements.txt
         continue-on-error: false  # Critical: dependencies must be installed
-        env:
-          LOG_FILE: ${{ env.LOG_FILE }}
 
       - name: Transform data
         run: |
           echo "Transforming data..." >> $LOG_FILE
           python transform_data.py
         continue-on-error: true  # Non-critical: allow pipeline to proceed if transformation fails, log error
-        env:
-          LOG_FILE: ${{ env.LOG_FILE }}
 
   model_training:
     runs-on: ubuntu-latest
@@ -126,24 +116,18 @@ jobs:
           python -m pip install --upgrade pip
           pip install -r requirements.txt
         continue-on-error: false  # Critical: dependencies must be installed for training
-        env:
-          LOG_FILE: ${{ env.LOG_FILE }}
 
       - name: Generate test data for evaluation
         run: |
           echo "Generating test data..." >> $LOG_FILE
           python generate_test_data.py
         continue-on-error: true  # Non-critical: allow pipeline to proceed if test data generation fails, log error
-        env:
-          LOG_FILE: ${{ env.LOG_FILE }}
 
       - name: Train model with dummy data
         run: |
           echo "Training model with dummy data..." >> $LOG_FILE
           python train_model.py --use_dummy --model_path models/model.pkl
         continue-on-error: true  # Critical but allow continuation for debugging; log failure
-        env:
-          LOG_FILE: ${{ env.LOG_FILE }}
 
       - name: Verify model file
         run: |
@@ -152,8 +136,6 @@ jobs:
           file models/model.pkl || echo "Cannot get file type" >> $LOG_FILE
           echo "Model file size: $(stat -f %z models/model.pkl 2>> $LOG_FILE || echo '0') bytes" >> $LOG_FILE
         continue-on-error: true  # Non-critical: verification can fail, but log for debugging
-        env:
-          LOG_FILE: ${{ env.LOG_FILE }}
 
       - name: Upload model artifact
         uses: actions/upload-artifact@v3
@@ -170,8 +152,6 @@ jobs:
             data/test_data.csv
             data/test_labels.csv
         continue-on-error: true  # Allow continuation if upload fails, log for debugging
-        env:
-          LOG_FILE: ${{ env.LOG_FILE }}
 
   model_evaluation:
     runs-on: ubuntu-latest
@@ -194,8 +174,6 @@ jobs:
           python -m pip install --upgrade pip
           pip install -r requirements.txt
         continue-on-error: false  # Critical: dependencies must be installed for evaluation
-        env:
-          LOG_FILE: ${{ env.LOG_FILE }}
 
       - name: Download model artifact
         uses: actions/download-artifact@v3
@@ -219,16 +197,12 @@ jobs:
           echo "Model file size: $(stat -f %z models/model.pkl 2>> $LOG_FILE || echo '0') bytes" >> $LOG_FILE
           ls -l data/test_data.csv data/test_labels.csv || echo "Test data files not found" >> $LOG_FILE
         continue-on-error: true  # Non-critical: verification can fail, but log for debugging
-        env:
-          LOG_FILE: ${{ env.LOG_FILE }}
 
       - name: Evaluate model
         run: |
           echo "Evaluating model..." >> $LOG_FILE
           python scripts/evaluate_model.py
         continue-on-error: true  # Non-critical: allow pipeline to proceed if evaluation fails, log error
-        env:
-          LOG_FILE: ${{ env.LOG_FILE }}
 
   deploy:
     runs-on: ubuntu-latest
@@ -251,8 +225,6 @@ jobs:
           python -m pip install --upgrade pip
           pip install -r requirements.txt
         continue-on-error: false  # Critical: dependencies must be installed for deployment
-        env:
-          LOG_FILE: ${{ env.LOG_FILE }}
 
       - name: Download model artifact
         uses: actions/download-artifact@v3
