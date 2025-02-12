@@ -38,7 +38,7 @@ def validate_data(data_path: Path, schema_path: Path) -> bool:
         logger.info(f"Data loaded from {data_file}, shape: {df.shape}")
 
         # Validate column names
-        expected_columns = schema.columns
+        expected_columns = schema.COLUMNS
         if list(df.columns) != list(expected_columns):
             missing_cols = set(expected_columns) - set(df.columns)
             extra_cols = set(df.columns) - set(expected_columns)
@@ -46,18 +46,27 @@ def validate_data(data_path: Path, schema_path: Path) -> bool:
             return False
 
         # Validate data types
-        for col, dtype in schema.dtypes.items():
+        for col, dtype in schema.COLUMNS.items():
             if df[col].dtype != dtype:
                 logger.error(f"Column {col} has type {df[col].dtype}, expected {dtype}")
                 return False
 
         # Validate ranges and constraints (example for numeric columns)
-        numeric_columns = ['CreditScore', 'Age', 'Tenure', 'Balance', 'NumOfProducts', 'EstimatedSalary']
-        for col in numeric_columns:
+        ranges = {
+            'CreditScore': {'min': 0, 'max': 850},
+            'Age': {'min': 18, 'max': 120},
+            'Tenure': {'min': 0, 'max': 10},
+            'Balance': {'min': 0, 'max': float('inf')},  # No upper limit for balance
+            'NumOfProducts': {'min': 1, 'max': 4},
+            'HasCrCard': {'min': 0, 'max': 1},  # Binary, should be 0 or 1
+            'IsActiveMember': {'min': 0, 'max': 1},  # Binary, should be 0 or 1
+            'EstimatedSalary': {'min': 0, 'max': float('inf')}  # No upper limit for salary
+        }
+
+        for col, range_dict in ranges.items():
             if col in df.columns:
-                if df[col].min() < schema.ranges.get(col, {}).get('min', float('-inf')) or \
-                   df[col].max() > schema.ranges.get(col, {}).get('max', float('inf')):
-                    logger.error(f"Column {col} out of range: min={df[col].min()}, max={df[col].max()}")
+                if df[col].min() < range_dict['min'] or df[col].max() > range_dict['max']:
+                    logger.error(f"Column {col} out of range: min={df[col].min()}, max={df[col].max()}, expected min={range_dict['min']}, max={range_dict['max']}")
                     return False
 
         # Check for missing values
@@ -65,8 +74,17 @@ def validate_data(data_path: Path, schema_path: Path) -> bool:
         if missing_values.any():
             logger.warning(f"Missing values found: {missing_values[missing_values > 0].to_dict()}")
             # Optionally, fail if too many missing values
-            if (missing_values / len(df) > 0.1).any():  # Example threshold: 10% missing
+            if (missing_values / len(df) > 0.1).any():
                 logger.error("Too many missing values, validation failed")
+                return False
+
+        # Validate target column if present (for training data)
+        if 'Exited' in df.columns and schema.TARGET_COLUMN.name == 'Exited':
+            if not pd.api.types.is_numeric_dtype(df['Exited']):
+                logger.error("Target column 'Exited' must be numeric")
+                return False
+            if not df['Exited'].isin([0, 1]).all():
+                logger.error("Target column 'Exited' must contain only 0 or 1")
                 return False
 
         logger.info("Data validation successful")
@@ -77,7 +95,7 @@ def validate_data(data_path: Path, schema_path: Path) -> bool:
         return False
 
 if __name__ == "__main__":
-    # Assume data is in artifacts/data_ingestion/ as per CI/CD
+    # Assume data is in artifacts/data_ingestion/
     data_path = Path("artifacts/data_ingestion")
     schema_path = Path("schema.yaml")
 
