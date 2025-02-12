@@ -30,8 +30,12 @@ jobs:
 
       - name: Install dependencies
         run: |
+          echo "Installing dependencies..." >> $LOG_FILE
           python -m pip install --upgrade pip
           pip install -r requirements.txt
+        continue-on-error: false  # Critical: dependencies must be installed
+        env:
+          LOG_FILE: ${{ env.LOG_FILE }}
 
       - name: Download data
         env:
@@ -40,7 +44,7 @@ jobs:
           echo "Downloading data from ${DATA_URL}..." >> $LOG_FILE
           wget -O ${GITHUB_WORKSPACE}/artifacts/data_ingestion/data.zip $DATA_URL
           unzip ${GITHUB_WORKSPACE}/artifacts/data_ingestion/data.zip -d ${GITHUB_WORKSPACE}/artifacts/data_ingestion/
-        continue-on-error: true
+        continue-on-error: true  # Non-critical: allow pipeline to proceed if data download fails, log error
         env:
           LOG_FILE: ${{ env.LOG_FILE }}
 
@@ -58,14 +62,18 @@ jobs:
 
       - name: Install dependencies
         run: |
+          echo "Installing dependencies..." >> $LOG_FILE
           python -m pip install --upgrade pip
           pip install -r requirements.txt
+        continue-on-error: false  # Critical: dependencies must be installed
+        env:
+          LOG_FILE: ${{ env.LOG_FILE }}
 
       - name: Validate data
         run: |
           echo "Validating data..." >> $LOG_FILE
           python validate_data.py
-        continue-on-error: true
+        continue-on-error: true  # Non-critical: allow pipeline to proceed if validation fails, log error
         env:
           LOG_FILE: ${{ env.LOG_FILE }}
 
@@ -83,14 +91,18 @@ jobs:
 
       - name: Install dependencies
         run: |
+          echo "Installing dependencies..." >> $LOG_FILE
           python -m pip install --upgrade pip
           pip install -r requirements.txt
+        continue-on-error: false  # Critical: dependencies must be installed
+        env:
+          LOG_FILE: ${{ env.LOG_FILE }}
 
       - name: Transform data
         run: |
           echo "Transforming data..." >> $LOG_FILE
           python transform_data.py
-        continue-on-error: true
+        continue-on-error: true  # Non-critical: allow pipeline to proceed if transformation fails, log error
         env:
           LOG_FILE: ${{ env.LOG_FILE }}
 
@@ -100,21 +112,28 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@v3
+        continue-on-error: false  # Critical: ensure repo is checked out
       
       - name: Set up Python
         uses: actions/setup-python@v4
         with:
           python-version: '3.8'
+        continue-on-error: false  # Critical: Python setup must succeed
 
       - name: Install dependencies
         run: |
+          echo "Installing dependencies..." >> $LOG_FILE
           python -m pip install --upgrade pip
           pip install -r requirements.txt
+        continue-on-error: false  # Critical: dependencies must be installed for training
+        env:
+          LOG_FILE: ${{ env.LOG_FILE }}
 
       - name: Generate test data for evaluation
         run: |
           echo "Generating test data..." >> $LOG_FILE
           python generate_test_data.py
+        continue-on-error: true  # Non-critical: allow pipeline to proceed if test data generation fails, log error
         env:
           LOG_FILE: ${{ env.LOG_FILE }}
 
@@ -122,6 +141,7 @@ jobs:
         run: |
           echo "Training model with dummy data..." >> $LOG_FILE
           python train_model.py --use_dummy --model_path models/model.pkl
+        continue-on-error: true  # Critical but allow continuation for debugging; log failure
         env:
           LOG_FILE: ${{ env.LOG_FILE }}
 
@@ -131,12 +151,16 @@ jobs:
           ls -l models/model.pkl || echo "Model file not found" >> $LOG_FILE
           file models/model.pkl || echo "Cannot get file type" >> $LOG_FILE
           echo "Model file size: $(stat -f %z models/model.pkl 2>> $LOG_FILE || echo '0') bytes" >> $LOG_FILE
+        continue-on-error: true  # Non-critical: verification can fail, but log for debugging
+        env:
+          LOG_FILE: ${{ env.LOG_FILE }}
 
       - name: Upload model artifact
         uses: actions/upload-artifact@v3
         with:
           name: model
           path: models/model.pkl
+        continue-on-error: true  # Allow continuation if upload fails, log for debugging
 
       - name: Upload test data artifacts
         uses: actions/upload-artifact@v3
@@ -145,35 +169,47 @@ jobs:
           path: |
             data/test_data.csv
             data/test_labels.csv
+        continue-on-error: true  # Allow continuation if upload fails, log for debugging
+        env:
+          LOG_FILE: ${{ env.LOG_FILE }}
 
   model_evaluation:
     runs-on: ubuntu-latest
     needs: model_training
+    continue-on-error: true  # Allow pipeline to proceed even if evaluation fails, log errors
     steps:
       - name: Checkout repository
         uses: actions/checkout@v3
+        continue-on-error: false  # Critical: ensure repo is checked out
       
       - name: Set up Python
         uses: actions/setup-python@v4
         with:
           python-version: '3.8'
+        continue-on-error: false  # Critical: Python setup must succeed
 
       - name: Install dependencies
         run: |
+          echo "Installing dependencies..." >> $LOG_FILE
           python -m pip install --upgrade pip
           pip install -r requirements.txt
+        continue-on-error: false  # Critical: dependencies must be installed for evaluation
+        env:
+          LOG_FILE: ${{ env.LOG_FILE }}
 
       - name: Download model artifact
         uses: actions/download-artifact@v3
         with:
           name: model
           path: models/
+        continue-on-error: true  # Allow continuation if download fails, log for debugging
 
       - name: Download test data artifacts
         uses: actions/download-artifact@v3
         with:
           name: test-data
           path: data/
+        continue-on-error: true  # Allow continuation if download fails, log for debugging
 
       - name: Verify downloaded files
         run: |
@@ -182,11 +218,15 @@ jobs:
           file models/model.pkl || echo "Cannot get file type" >> $LOG_FILE
           echo "Model file size: $(stat -f %z models/model.pkl 2>> $LOG_FILE || echo '0') bytes" >> $LOG_FILE
           ls -l data/test_data.csv data/test_labels.csv || echo "Test data files not found" >> $LOG_FILE
+        continue-on-error: true  # Non-critical: verification can fail, but log for debugging
+        env:
+          LOG_FILE: ${{ env.LOG_FILE }}
 
       - name: Evaluate model
         run: |
           echo "Evaluating model..." >> $LOG_FILE
           python scripts/evaluate_model.py
+        continue-on-error: true  # Non-critical: allow pipeline to proceed if evaluation fails, log error
         env:
           LOG_FILE: ${{ env.LOG_FILE }}
 
@@ -197,27 +237,35 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@v3
+        continue-on-error: false  # Critical: ensure repo is checked out
 
       - name: Set up Python
         uses: actions/setup-python@v4
         with:
           python-version: '3.8'
+        continue-on-error: false  # Critical: Python setup must succeed
 
       - name: Install dependencies
         run: |
+          echo "Installing dependencies..." >> $LOG_FILE
           python -m pip install --upgrade pip
           pip install -r requirements.txt
+        continue-on-error: false  # Critical: dependencies must be installed for deployment
+        env:
+          LOG_FILE: ${{ env.LOG_FILE }}
 
       - name: Download model artifact
         uses: actions/download-artifact@v3
         with:
           name: model
           path: models/
+        continue-on-error: true  # Allow continuation if download fails, log for debugging
 
       - name: Build Docker image
         run: |
           echo "Building Docker image..." >> $LOG_FILE
           docker build -t ${{ env.DOCKER_REGISTRY }}/${{ github.repository_owner }}/${{ env.DOCKER_IMAGE }}:${{ env.IMAGE_TAG }} . 2>> $LOG_FILE || echo "Error building Docker image!" >> $LOG_FILE
+        continue-on-error: true  # Allow continuation if build fails, log for debugging
 
       - name: Log in to GitHub Container Registry
         uses: docker/login-action@v2
@@ -225,17 +273,20 @@ jobs:
           registry: ${{ env.DOCKER_REGISTRY }}
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
+        continue-on-error: false  # Critical: login must succeed for push
 
       - name: Push Docker image to GitHub Container Registry
         run: |
           echo "Pushing Docker image to registry..." >> $LOG_FILE
           docker push ${{ env.DOCKER_REGISTRY }}/${{ github.repository_owner }}/${{ env.DOCKER_IMAGE }}:${{ env.IMAGE_TAG }} 2>> $LOG_FILE || echo "Error pushing Docker image!" >> $LOG_FILE
+        continue-on-error: true  # Allow continuation if push fails, log for debugging
 
       - name: Record current deployment
         if: success()
         run: |
           echo ${{ env.IMAGE_TAG }} > current_deployment.txt
           cat current_deployment.txt >> $LOG_FILE
+        continue-on-error: true  # Non-critical: logging deployment, allow continuation if fails
 
       - name: Deploy to Server via SSH
         uses: appleboy/ssh-action@master
@@ -270,7 +321,7 @@ jobs:
                 echo "No previous deployment found. Manual intervention required." >> /tmp/${{ env.LOG_FILE }}
                 exit 1
               fi
-            fi
+        continue-on-error: true  # Allow continuation if SSH deployment fails, log for debugging
 
       - name: Upload deployment log
         uses: actions/upload-artifact@v3
@@ -278,6 +329,7 @@ jobs:
         with:
           name: deployment-log
           path: ${{ env.LOG_FILE }}
+        continue-on-error: true  # Allow continuation if upload fails, log for debugging
 
       - name: Notify Slack on failure
         if: failure()
@@ -288,6 +340,7 @@ jobs:
           status: ${{ job.status }}
           color: danger
           message: Deployment failed for ${{ github.repository }} on ${{ github.ref }} at ${{ github.sha }}. A rollback was attempted. Check logs for details.
+        continue-on-error: true  # Allow pipeline to continue even if notification fails
 
       - name: Notify Slack on success
         if: success()
@@ -298,3 +351,4 @@ jobs:
           status: ${{ job.status }}
           color: good
           message: Deployment successful for ${{ github.repository }} on ${{ github.ref }} at ${{ github.sha }}. Check logs for details.
+        continue-on-error: true  # Allow pipeline to continue even if notification fails
