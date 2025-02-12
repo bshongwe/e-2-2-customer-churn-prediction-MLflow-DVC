@@ -1,14 +1,16 @@
 #!/usr/bin/env python3
 
+import sys
+import os
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), 'mlops_project')))
 import streamlit as st
 import pandas as pd
 import numpy as np
-from mlops_project.pipeline.prediction.prediction_pipeline import PredictionPipeline
-import os
+from mlops_project.pipeline.prediction import PredictionPipeline
+# from mlops_pipeline.prediction.prediction_pipeline import PredictionPipeline  # Import from mlops_project, not src
 import logging
 from pathlib import Path
 import traceback
-import sys
 
 # Set up logging
 logging.basicConfig(level=logging.INFO)
