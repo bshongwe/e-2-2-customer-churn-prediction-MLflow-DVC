@@ -71,7 +71,7 @@ jobs:
           fi
 
       - name: Upload deployment log
-        uses: actions/upload-artifact@v3
+        uses: actions/cache@v3
         if: always()
         with:
           name: deployment-log

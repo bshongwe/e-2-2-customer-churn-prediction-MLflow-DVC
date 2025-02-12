@@ -113,13 +113,13 @@ jobs:
           echo "Model file size: $(stat -f %z models/model.pkl) bytes"
 
       - name: Upload model artifact
-        uses: actions/upload-artifact@v3
+        uses: actions/cache@v3
         with:
           name: model
           path: models/model.pkl
 
       - name: Upload test data artifacts
-        uses: actions/upload-artifact@v3
+        uses: actions/cache@v3
         with:
           name: test-data
           path: |
@@ -248,7 +248,7 @@ jobs:
             fi
 
       - name: Upload deployment log
-        uses: actions/upload-artifact@v3
+        uses: actions/cache@v3
         if: always()
         with:
           name: deployment-log
