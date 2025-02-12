@@ -1,0 +1,86 @@
+name: Deploy Streamlit App to Streamlit Community Cloud
+
+on:
+  push:
+    branches:
+      - main
+
+env:
+  STREAMLIT_APP_NAME: customer-churn-prediction
+  LOG_FILE: deploy-streamlit.log
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+        with:
+          fetch-depth: 0  # Fetch all history for potential versioning
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.8'
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+        continue-on-error: false
+
+      - name: Log deployment start
+        run: |
+          echo "Starting Streamlit deployment at $(date)" >> $LOG_FILE
+          echo "Git commit: ${{ github.sha }}" >> $LOG_FILE
+
+      - name: Configure Git for Streamlit
+        run: |
+          git config --global user.name "GitHub Actions"
+          git config --global user.email "actions@github.com"
+        continue-on-error: false
+
+      - name: Deploy to Streamlit Community Cloud
+        id: deploy
+        run: |
+          echo "Initiating deployment to Streamlit..." >> $LOG_FILE
+          # Streamlit Community Cloud handles deployment via GitHub integration
+          # This step ensures the repo is pushed to trigger the deploy
+          git push origin main
+          echo "Push completed, waiting for Streamlit to deploy..." >> $LOG_FILE
+        continue-on-error: false
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Check deployment status
+        run: |
+          echo "Checking deployment status (manual check recommended)..." >> $LOG_FILE
+          echo "Visit Streamlit Community Cloud to verify deployment at: https://share.streamlit.io/${{ github.repository_owner }}/${{ env.STREAMLIT_APP_NAME }}/" >> $LOG_FILE
+        continue-on-error: false
+
+      - name: Upload deployment log
+        uses: actions/upload-artifact@v3
+        if: always()
+        with:
+          name: deployment-streamlit-log
+          path: ${{ env.LOG_FILE }}
+
+      - name: Notify Slack on failure
+        if: failure()
+        uses: rtCamp/action-slack-notify@v2
+        env:
+          SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK }}
+        with:
+          status: ${{ job.status }}
+          color: danger
+          message: Streamlit deployment failed for ${{ github.repository }} on ${{ github.ref }} at ${{ github.sha }}. Check logs for details.
+
+      - name: Notify Slack on success
+        if: success()
+        uses: rtCamp/action-slack-notify@v2
+        env:
+          SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK }}
+        with:
+          status: ${{ job.status }}
+          color: good
+          message: Streamlit deployment successful for ${{ github.repository }} on ${{ github.ref }} at ${{ github.sha }}. Check at: https://share.streamlit.io/${{ github.repository_owner }}/${{ env.STREAMLIT_APP_NAME }}/

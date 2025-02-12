@@ -3,8 +3,8 @@ import yaml
 import sys
 import json
 from pathlib import Path
-from src.mlops_project.exception import MyException
-from src.mlops_project.logger import logging
+from mlops_project.exception import MyException
+from mlops_project.logger import logging
 from box import ConfigBox
 from box.exceptions import BoxValueError
 

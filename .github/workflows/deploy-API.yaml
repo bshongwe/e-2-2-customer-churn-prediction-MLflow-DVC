@@ -1,0 +1,98 @@
+name: Deploy API to Render
+
+on:
+  push:
+    branches:
+      - main
+
+env:
+  RENDER_API_URL: https://api.render.com/v1/services
+  LOG_FILE: deploy.log
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+        with:
+          fetch-depth: 0  # Fetch all history for potential versioning
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.8'
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+        continue-on-error: false
+
+      - name: Log deployment start
+        run: |
+          echo "Starting deployment at $(date)" >> $LOG_FILE
+          echo "Git commit: ${{ github.sha }}" >> $LOG_FILE
+
+      - name: Deploy to Render via API
+        id: deploy
+        run: |
+          echo "Initiating deployment to Render..." >> $LOG_FILE
+          curl -X POST "${{ env.RENDER_API_URL }}/${{ secrets.RENDER_SERVICE_ID }}/deploys" \
+            -H "Authorization: Bearer ${{ secrets.RENDER_API_KEY }}" \
+            -H "Accept: application/json" \
+            -H "Content-Type: application/json" \
+            -d '{}' \
+            -o deploy_response.json \
+            -w "%{http_code}" \
+            -s
+          HTTP_STATUS=$?
+          echo "HTTP status code: $HTTP_STATUS" >> $LOG_FILE
+
+          if [ $HTTP_STATUS -ne 200 ] && [ $HTTP_STATUS -ne 201 ]; then
+            cat deploy_response.json >> $LOG_FILE
+            echo "Deployment failed with status $HTTP_STATUS" >> $LOG_FILE
+            exit 1
+          fi
+        continue-on-error: false
+        env:
+          RENDER_SERVICE_ID: ${{ secrets.RENDER_SERVICE_ID }}
+          RENDER_API_KEY: ${{ secrets.RENDER_API_KEY }}
+
+      - name: Parse deployment response
+        if: success()
+        run: |
+          echo "Parsing deployment response..." >> $LOG_FILE
+          if [ -f deploy_response.json ]; then
+            DEPLOY_ID=$(jq -r '.id' deploy_response.json 2>> $LOG_FILE || echo "Error parsing deploy ID")
+            echo "Deployment ID: $DEPLOY_ID" >> $LOG_FILE
+          else
+            echo "No deployment response file found" >> $LOG_FILE
+          fi
+
+      - name: Upload deployment log
+        uses: actions/upload-artifact@v3
+        if: always()
+        with:
+          name: deployment-log
+          path: ${{ env.LOG_FILE }}
+
+      - name: Notify Slack on failure
+        if: failure()
+        uses: rtCamp/action-slack-notify@v2
+        env:
+          SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK }}
+        with:
+          status: ${{ job.status }}
+          color: danger
+          message: Deployment to Render failed for ${{ github.repository }} on ${{ github.ref }} at ${{ github.sha }}. Check logs for details.
+
+      - name: Notify Slack on success
+        if: success()
+        uses: rtCamp/action-slack-notify@v2
+        env:
+          SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK }}
+        with:
+          status: ${{ job.status }}
+          color: good
+          message: Deployment to Render successful for ${{ github.repository }} on ${{ github.ref }} at ${{ github.sha }}. Check logs for details.
