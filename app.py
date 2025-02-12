@@ -15,6 +15,10 @@ sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), 'mlops_p
 # from pipeline.prediction import PredictionPipeline
 from mlops_project.pipeline.prediction import PredictionPipeline
 
+# Handle command-line arguments for data type
+if len(sys.argv) > 1 and sys.argv[1] == '--data-type':
+    os.environ['DATA_TYPE'] = sys.argv[2] if len(sys.argv) > 2 else 'dummy'
+
 app = Flask(__name__)
 
 # Configure logging

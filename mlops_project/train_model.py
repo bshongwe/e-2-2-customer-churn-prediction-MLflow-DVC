@@ -1,14 +1,19 @@
 #!/usr/bin/env python3
 
+# Standard Library
+import os
+import sys
+import argparse
+
+# Third-Party Libraries
 import numpy as np
 import pandas as pd
+import joblib
+
+# Scikit-Learn Modules
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.datasets import make_classification
 from sklearn.model_selection import train_test_split
-import joblib
-import argparse
-import os
-import sys
 
 def generate_dummy_data():
     """Generate and return dummy data for model training."""
@@ -101,34 +106,49 @@ def train_model(X, y, model_path):
         raise
 
 def main():
-    parser = argparse.ArgumentParser(description="Train a Random Forest model with dummy and/or real data.")
+    parser = argparse.ArgumentParser(description="Train a Random Forest model with either dummy or real data, dynamically locating CSV files.")
     parser.add_argument('--use_dummy', action='store_true', help="Use dummy data for training")
     parser.add_argument('--data_path', type=str, help="Path to the CSV file or directory containing real data")
     parser.add_argument('--target_column', type=str, default='Churn', help="Name of the target column in the real dataset")
-    parser.add_argument('--dummy_model_path', type=str, default='models/dummy_model.pkl', help="Path to save the dummy data model")
-    parser.add_argument('--real_model_path', type=str, default='models/real_model.pkl', help="Path to save the real data model")
+    parser.add_argument('--model_path', type=str, default='models/model.pkl', help="Path to save the trained model")
 
     args = parser.parse_args()
 
+    # Check environment variable for data type if no args specified
+    if not args.use_dummy and not args.data_path:
+        data_type = os.environ.get('DATA_TYPE', 'dummy').lower()
+        if data_type == 'dummy':
+            args.use_dummy = True
+        elif data_type == 'real':
+            args.data_path = 'artifacts/data_transformation'  # Default real data path, adjust as needed
+            args.target_column = 'Churn'
+        else:
+            print("Invalid DATA_TYPE environment variable. Use 'dummy' or 'real'.", file=sys.stderr)
+            parser.print_help()
+            sys.exit(1)
+
     # Check if at least one data source is specified
     if not args.use_dummy and not args.data_path:
-        print("Please specify at least one data source: --use_dummy or --data_path.", file=sys.stderr)
+        print("Please specify at least one data source: --use_dummy or --data_path, or set DATA_TYPE environment variable.", file=sys.stderr)
         parser.print_help()
         sys.exit(1)
 
-    # Train with dummy data if specified
+    # Ensure only one data source is used
+    if args.use_dummy and args.data_path:
+        print("Error: Cannot use both --use_dummy and --data_path. Choose one data source.", file=sys.stderr)
+        parser.print_help()
+        sys.exit(1)
+
     if args.use_dummy:
         X, y = generate_dummy_data()
-        train_model(X, y, args.dummy_model_path)
-
-    # Train with real data if specified
-    if args.data_path:
+        train_model(X, y, args.model_path)
+    elif args.data_path:
         if not args.target_column:
             print("Error: --target_column is required when using --data_path.", file=sys.stderr)
             parser.print_help()
             sys.exit(1)
         X, y = load_real_data(args.data_path, args.target_column)
-        train_model(X, y, args.real_model_path)
+        train_model(X, y, args.model_path)
 
 if __name__ == "__main__":
     main()

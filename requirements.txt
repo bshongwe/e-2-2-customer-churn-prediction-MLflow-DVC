@@ -16,4 +16,6 @@ streamlit
 joblib
 nbconvert
 nbformat
+ensure
+pyyaml
 -e .
