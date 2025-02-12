@@ -5,6 +5,13 @@ import pandas as pd
 import numpy as np
 from mlops_project.pipeline.prediction.prediction_pipeline import PredictionPipeline
 import os
+import logging
+from pathlib import Path
+import traceback
+
+# Set up logging
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
 
 # Set page title and icon
 st.set_page_config(page_title="Customer Churn Prediction", page_icon=":bar_chart:")
@@ -17,15 +24,23 @@ st.write("Enter customer details to predict if they will churn.")
 @st.cache_resource
 def load_model():
     """Load the prediction pipeline with cached model."""
-    model_path = os.path.join(os.path.dirname(__file__), 'models', 'model.pkl')
-    return PredictionPipeline(model_path=model_path)
+    try:
+        # Resolve model path relative to project root
+        base_dir = Path(__file__).resolve().parent
+        model_path = base_dir / 'models' / 'model.pkl'
+        logger.info(f"Loading model from: {model_path}")
+        return PredictionPipeline(model_path=str(model_path))
+    except Exception as e:
+        logger.error(f"Error loading model: {str(e)}")
+        raise
 
 # Load model
 try:
     pipeline = load_model()
     st.write("Model loaded successfully.")
 except Exception as e:
-    st.error(f"Error loading model: {str(e)}")
+    st.error("Failed to load model. Please ensure model.pkl is in the models directory.")
+    logger.error(f"Model loading failed: {str(e)}")
     st.stop()
 
 # Input form for user data
@@ -60,8 +75,8 @@ if submit_button:
             'Tenure': tenure,
             'Balance': balance,
             'NumOfProducts': num_products,
-            'HasCrCard': 1 if has_credit_card else 0,
-            'IsActiveMember': 1 if is_active_member else 0,
+            'HasCrCard': int(has_credit_card),
+            'IsActiveMember': int(is_active_member),
             'EstimatedSalary': estimated_salary
         }
         df = pd.DataFrame([data])
@@ -86,8 +101,11 @@ if submit_button:
         st.write(df)
 
     except Exception as e:
-        st.error(f"Error during prediction: {str(e)}")
+        logger.error(f"Error during prediction: {str(e)}")
+        st.error("An error occurred during prediction. Please try again or check the logs.")
+        # Log the full traceback for debugging, but don't show to user
+        logger.error(traceback.format_exc())
 
-# Add footer
-st.write("---")
+# Add footer (ensure it's always displayed)
+st.markdown("---")
 st.write("Powered by Streamlit and your ML model")
