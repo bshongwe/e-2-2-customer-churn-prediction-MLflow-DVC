@@ -138,14 +138,14 @@ jobs:
         continue-on-error: true  # Non-critical: verification can fail, but log for debugging
 
       - name: Upload model artifact
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: model
           path: models/model.pkl
         continue-on-error: true  # Allow continuation if upload fails, log for debugging
 
       - name: Upload test data artifacts
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: test-data
           path: |
@@ -296,7 +296,7 @@ jobs:
         continue-on-error: true  # Allow continuation if SSH deployment fails, log for debugging
 
       - name: Upload deployment log
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         if: always()
         with:
           name: deployment-log
