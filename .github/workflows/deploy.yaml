@@ -121,7 +121,7 @@ jobs:
       - name: Train model with dummy data
         run: |
           echo "Training model with dummy data..." >> $LOG_FILE
-          python train_model.py --use_dummy --model_path models/model.pkl
+          python src/mlops_project/train_model.py --use_dummy --model_path models/model.pkl
         env:
           LOG_FILE: ${{ env.LOG_FILE }}
 
