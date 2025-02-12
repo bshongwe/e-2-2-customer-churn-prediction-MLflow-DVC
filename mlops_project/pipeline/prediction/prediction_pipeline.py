@@ -12,7 +12,7 @@ class PredictionPipeline(BaseEstimator):
     def __init__(self, model_path=None):
         if model_path is None:
             import os
-            model_path = os.path.join(os.path.dirname(__file__), '../../models/model.pkl')
+            model_path = os.path.join(os.path.dirname(__file__), 'src/mlops_project/models/model.pkl')
         self.model_path = model_path
         self.model = None
         # List of numeric features:
