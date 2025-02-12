@@ -130,22 +130,6 @@ class PredictionPipeline(BaseEstimator):
         else:
             raise AttributeError("The loaded model does not support probability prediction (predict_proba).")
 
-        if self.model is None:
-            self.load_model()
-
-        # Ensure the input is a pandas DataFrame with expected columns
-        if not isinstance(X, pd.DataFrame):
-            raise ValueError("Input must be a pandas DataFrame")
-
-        expected_columns = ['CreditScore', 'Geography', 'Gender', 'Age', 'Tenure', 
-                            'Balance', 'NumOfProducts', 'HasCrCard', 'IsActiveMember', 'EstimatedSalary']
-        if not all(col in X.columns for col in expected_columns):
-            raise ValueError(f"DataFrame must contain columns: {expected_columns}")
-
-        # Preprocess the data before prediction
-        X_transformed = self.transform(X)
-
-        return self.model.predict_proba(X_transformed) if hasattr(self.model, 'predict_proba') else None
 
     def predict_proba(self, X):
         """Predict probabilities for binary classification."""
