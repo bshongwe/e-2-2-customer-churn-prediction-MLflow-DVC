@@ -1,3 +1,5 @@
+#!/usr/bin/env python3
+
 import sys
 from mlops_project.config.configuration import ConfigurationManager
 from mlops_project.components.model_trainer import ModelTrainer
