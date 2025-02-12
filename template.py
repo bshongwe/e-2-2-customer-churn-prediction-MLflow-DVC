@@ -22,13 +22,19 @@ list_of_files = [
     "schema.yaml",
     "main.py",
     "app.py",
+    "streamlit_app.py",  # Added for Streamlit app
     "Dockerfile",
     ".dockerignore",
     "requirements.txt",
     "setup.py",
-    "research/trials.ipynb"
+    "research/trials.ipynb",
+    "scripts/evaluate_model.py",  # Added as part of pipeline
+    "scripts/validate_data.py",  # Added as part of pipeline
+    "scripts/transform_data.py",  # Added as part of pipeline
+    "scripts/generate_test_data.py",  # Added as part of pipeline
+    "data/",  # Added directory for data files
+    "models/",  # Added directory for model files
 ]
-
 
 for filepath in list_of_files:
     filepath = Path(filepath)
@@ -36,12 +42,16 @@ for filepath in list_of_files:
 
     if filedir != "":
         os.makedirs(filedir, exist_ok=True)
-        logging.info(f"Creating directory; {filedir} for the file: {filename}")
+        logging.info(f"Creating directory: {filedir} for the file: {filename}")
+
+    # Handle directories (ends with /)
+    if filename == "" and filepath.exists() and filepath.is_dir():
+        logging.info(f"Directory {filepath} already exists")
+        continue
 
     if (not os.path.exists(filepath)) or (os.path.getsize(filepath) == 0):
         with open(filepath, "w") as f:
-            pass
-            logging.info(f"Creating empty file: {filepath}")
-
+            pass  # Create empty file
+        logging.info(f"Creating empty file: {filepath}")
     else:
         logging.info(f"{filename} already exists")
