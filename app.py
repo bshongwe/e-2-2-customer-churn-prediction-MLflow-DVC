@@ -12,50 +12,59 @@ import numpy as np
 import pandas as pd
 
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), 'mlops_project')))
-# from pipeline.prediction import PredictionPipeline
 from mlops_project.pipeline.prediction import PredictionPipeline
 
-# Handle command-line arguments for data type
+# Handle command-line arguments for data type or use environment variable
 if len(sys.argv) > 1 and sys.argv[1] == '--data-type':
-    os.environ['DATA_TYPE'] = sys.argv[2] if len(sys.argv) > 2 else 'dummy'
+    os.environ['DATA_TYPE'] = sys.argv[2] if len(sys.argv) > 2 else os.environ.get('DATA_TYPE', 'dummy')
+else:
+    os.environ.setdefault('DATA_TYPE', 'dummy')  # Default to dummy if not set
 
 app = Flask(__name__)
 
 # Configure logging
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
+logger = logging.getLogger(__name__)
+
+logger.info(f"Starting app with DATA_TYPE: {os.environ.get('DATA_TYPE', 'dummy')}")
 
 def convert_and_run_notebook(notebook_path):
-    # Read notebook
-    with open(notebook_path) as f:
-        nb = nbformat.read(f, as_version=4)
-    
-    # Convert to Python script
-    exporter = PythonExporter()
-    source, meta = exporter.from_notebook_node(nb)
-    
-    # Write Python script to temporary file
-    temp_py_file = 'temp_script_from_notebook.py'
-    with open(temp_py_file, 'w') as f:
-        f.write(source)
-    
+    """Convert and run a Jupyter notebook."""
     try:
-        # Execute converted script
-        logging.info(f"Running {notebook_path}")
-        subprocess.run(["python", temp_py_file], check=True)
-    except subprocess.CalledProcessError as e:
-        logging.error(f"Error running {notebook_path}: {e}")
-    except Exception as e:
-        logging.error(f"Unexpected error: {e}")
-    finally:
-        # Clean up temporary file
+        with open(notebook_path) as f:
+            nb = nbformat.read(f, as_version=4)
+        
+        exporter = PythonExporter()
+        source, meta = exporter.from_notebook_node(nb)
+        
+        temp_py_file = 'temp_script_from_notebook.py'
+        with open(temp_py_file, 'w') as f:
+            f.write(source)
+        
+        logger.info(f"Running {notebook_path} with DATA_TYPE: {os.environ.get('DATA_TYPE', 'dummy')}")
+        result = subprocess.run(["python", temp_py_file], check=True, capture_output=True, text=True, env=os.environ)
+        logger.info(f"Notebook execution output: {result.stdout}")
+        
         if os.path.exists(temp_py_file):
             os.remove(temp_py_file)
+        return True
+    except subprocess.CalledProcessError as e:
+        logger.error(f"Error running {notebook_path}: {e}")
+        logger.error(f"Error output: {e.stderr}")
+        return False
+    except Exception as e:
+        logger.error(f"Unexpected error running notebook: {str(e)}")
+        return False
 
 def run_notebooks_in_directory(directory):
+    """Run all notebooks in the specified directory."""
+    success = True
     for filename in os.listdir(directory):
         if filename.endswith(".ipynb"):
             filepath = os.path.join(directory, filename)
-            convert_and_run_notebook(filepath)
+            if not convert_and_run_notebook(filepath):
+                success = False
+    return success
 
 # Validation for prediction inputs
 VALIDATIONS = {
@@ -70,13 +79,25 @@ def homePage():
 
 @app.route('/train', methods=['GET'])
 def training():
+    """Route to train the pipeline by running notebooks."""
     research_directory = os.path.join(os.path.dirname(__file__), "research")
-    if os.path.exists(research_directory) and os.path.isdir(research_directory):
-        run_notebooks_in_directory(research_directory)
-        return jsonify({"message": "Training Successful!"})
-    else:
-        logging.error(f"Directory {research_directory} does not exist or is not a directory")
+    if not os.path.exists(research_directory) or not os.path.isdir(research_directory):
+        logger.error(f"Directory {research_directory} does not exist or is not a directory")
         return jsonify({"error": "Training failed: research directory not found."}), 500
+
+    try:
+        with app.app_context():
+            logger.info(f"Starting training in directory: {research_directory} with DATA_TYPE: {os.environ.get('DATA_TYPE', 'dummy')}")
+            success = run_notebooks_in_directory(research_directory)
+            if success:
+                logger.info("Training completed successfully.")
+                return jsonify({"message": "Training Successful!"})
+            else:
+                logger.error("Training failed: one or more notebooks failed to execute.")
+                return jsonify({"error": "Training failed: one or more notebooks failed to execute."}), 500
+    except Exception as e:
+        logger.error(f"Unexpected error during training: {str(e)}")
+        return jsonify({"error": "An unexpected error occurred during training."}), 500
 
 @app.route('/predict', methods=['POST', 'GET'])
 def index():
@@ -113,10 +134,10 @@ def index():
             data['estimatedSalary'] = float(data['estimatedSalary'])
 
             # Map categorical data to numerical or encoded values
-            geography_encoding = {'France': 0, 'Spain': 1, 'Germany': 2}  # Example mapping, adjust as needed
-            data['geography'] = geography_encoding.get(data['geography'], -1)  # -1 for unknown values
-            gender_encoding = {'Female': 0, 'Male': 1}  # Example mapping, adjust as needed
-            data['gender'] = gender_encoding.get(data['gender'], -1)  # -1 for unknown values
+            geography_encoding = {'France': 0, 'Spain': 1, 'Germany': 2}
+            data['geography'] = geography_encoding.get(data['geography'], -1)
+            gender_encoding = {'Female': 0, 'Male': 1}
+            data['gender'] = gender_encoding.get(data['gender'], -1)
 
             # Prepare data for prediction
             field_names = [
@@ -130,14 +151,18 @@ def index():
             df = pd.DataFrame(matrix, columns=field_names)
 
             # Predict
-            prediction_pipeline = PredictionPipeline()
-            prediction = prediction_pipeline.predict(df)
+            try:
+                prediction_pipeline = PredictionPipeline()
+                prediction = prediction_pipeline.predict(df)
+            except Exception as e:
+                logger.error(f"Error loading or predicting with model: {str(e)}")
+                return jsonify({"error": "Failed to load model for prediction. Please ensure training is complete."}), 500
 
             result = 'No' if prediction[0] == 0 else 'Yes'
             return render_template('result.html', prediction=result)
         except Exception as e:
             # Log the error
-            logging.error(f"Error occurred: {str(e)}")
+            logger.error(f"Error occurred: {str(e)}")
             return jsonify({"error": "An error occurred while processing your request."}), 500
 
     return render_template('index.html')
