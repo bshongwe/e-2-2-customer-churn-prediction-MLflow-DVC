@@ -9,7 +9,7 @@
 An end-to-end machine learning project for predicting **customer churn**, leveraging **MLflow** for experiment tracking, **DVC** for data versioning, and implementing a robust **CI/CD pipeline**. This project follows a modular approach, covering **data ingestion, validation, transformation, model training, evaluation**, and **deployment**.
 
 ---
-
+<br></br>
 ## 📁 Project Structure  
 
 The project is organized as follows:
@@ -90,7 +90,8 @@ To execute the pipeline:
 dvc repro
 ```
 
-## 🤖 Training The Model
+<br></br>
+# 🤖 Training The Model
 
 ### 🤖📜 Train the model with dummy data
 
@@ -98,17 +99,20 @@ dvc repro
 python train_model.py --use_dummy
 ```
 
+<br></br>
 ### 🤖📜 Or with real data (ensure data is transformed first)
 
 ```bash
 python train_model.py --data_path artifacts/data_transformation/transformed_data.csv --target_column Exited
 ```
 
+<br></br>
 ### 🌐 Start Flask server
 ```bash
 python app.py
 ```
 
+<br></br>
 ## 🚀 Run Streamlit app for interactive prediction
 
 ```bash
