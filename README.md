@@ -60,29 +60,26 @@ This project leverages **GitHub Actions** for an automated, end-to-end **ML work
 Follow these steps to set up and run the project:
 
 <br></br>
-### 🔧 Installation  
+### 🔧 1. Installation  
 
 ```bash
 # Clone the repository  
 git clone https://github.com/bshongwe/e-2-2-customer-churn-prediction-MLflow-DVC.git
 ```
 
-<br></br>
-### ▶️📥 Navigate to project directory  
+#### ▶️📥 Navigate to project directory  
 
 ```bash
 cd e-2-2-customer-churn-prediction-MLflow-DVC
 ```
 
-<br></br>
-### 🚀 Install dependencies 🔧
+#### 🚀 Install dependencies 🔧
 
 ```bash
 pip install -r requirements.txt
 ```
 
-<br></br>
-### ▶️ Running the Pipeline
+#### ▶️ Running the Pipeline
 To execute the pipeline:
 
 ```bash
@@ -91,36 +88,35 @@ dvc repro
 ```
 
 <br></br>
-# 🤖 Training The Model
+### 🤖 2. Training The Model
 
-### 🤖📜 Train the model with dummy data
+#### 🤖📜 Train the model with dummy data
 
 ```bash
 python train_model.py --use_dummy
 ```
 
-<br></br>
-### 🤖📜 Or with real data (ensure data is transformed first)
+#### 🤖📜 Or with real data (ensure data is transformed first)
 
 ```bash
 python train_model.py --data_path artifacts/data_transformation/transformed_data.csv --target_column Exited
 ```
 
 <br></br>
-### 🌐 Start Flask server
+### 🌐 3. Start Flask server
 ```bash
 python app.py
 ```
 
 <br></br>
-## 🚀 Run Streamlit app for interactive prediction
+## 🚀 4. Run Streamlit app for interactive prediction
 
 ```bash
 streamlit run streamlit_app.py
 ```
 
 <br></br>
-## 🧪 Running Tests
+## 🧪 5. Running Tests
 
 Ensure your code works as expected by running:
 
@@ -129,16 +125,18 @@ pytest
 ```
 
 <br></br>
-## 🐳 Deployment
+## 🐳 6. Deployment
 
     Flask App: Deployed using Docker and SSH via GitHub Actions. Automatically triggers training on deployment through a /train endpoint.
     Streamlit App: Deployed to Streamlit Community Cloud via GitHub Actions, allowing for interactive model predictions.
 
 
+---
 <br></br>
 # 📜 License
-This project is licensed under the MIT License. See the LICENSE file for more details.
+This project is licensed under the MIT License. See the ![LICENSE]( file for more details.
 
+---
 <br></br>
 # 🙌 Acknowledgements
 Special thanks to the following tools that made this project possible:  
