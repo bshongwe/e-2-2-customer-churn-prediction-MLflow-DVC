@@ -129,8 +129,8 @@ def index():
             data['tenure'] = int(data['tenure'])
             data['balance'] = float(data['balance'])
             data['numberOfProducts'] = int(data['numberOfProducts'])
-            data['creditCard'] = bool(int(data['creditCard']))  # Convert to boolean for clarity
-            data['activeMember'] = bool(int(data['activeMember']))  # Convert to boolean for clarity
+            data['creditCard'] = bool(int(data['creditCard']))
+            data['activeMember'] = bool(int(data['activeMember']))
             data['estimatedSalary'] = float(data['estimatedSalary'])
 
             # Map categorical data to numerical or encoded values
@@ -145,8 +145,16 @@ def index():
                 'Balance', 'NumOfProducts', 'HasCrCard', 'IsActiveMember', 'EstimatedSalary'
             ]
             matrix = np.array([
-                data['creditScore'], data['geography'], data['gender'], data['age'], data['tenure'],
-                data['balance'], data['numberOfProducts'], int(data['creditCard']), int(data['activeMember']), data['estimatedSalary']
+                data['creditScore'],
+                data['geography'],
+                data['gender'],
+                data['age'],
+                data['tenure'],
+                data['balance'],
+                data['numberOfProducts'],
+                int(data['creditCard']),
+                int(data['activeMember']),
+                data['estimatedSalary']
             ]).reshape(1, -1)
             df = pd.DataFrame(matrix, columns=field_names)
 

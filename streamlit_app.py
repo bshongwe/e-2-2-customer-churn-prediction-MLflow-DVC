@@ -7,7 +7,7 @@ import streamlit as st
 import pandas as pd
 import numpy as np
 from mlops_project.pipeline.prediction import PredictionPipeline
-# from mlops_pipeline.prediction.prediction_pipeline import PredictionPipeline  # Import from mlops_project, not src
+# from mlops_pipeline.prediction.prediction_pipeline import PredictionPipeline
 import logging
 from pathlib import Path
 import traceback
@@ -16,7 +16,8 @@ import traceback
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
-# Handle command-line arguments for data type or use environment variable, matching app.py
+# Handle command-line arguments for data type or use environment
+# variable, matching app.py
 if len(sys.argv) > 1 and sys.argv[1] == '--data-type':
     os.environ['DATA_TYPE'] = sys.argv[2] if len(sys.argv) > 2 else os.environ.get('DATA_TYPE', 'dummy')
 else:

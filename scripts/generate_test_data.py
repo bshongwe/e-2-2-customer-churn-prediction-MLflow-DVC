@@ -9,14 +9,18 @@ data_dir = 'data'
 os.makedirs(data_dir, exist_ok=True)
 
 # Generate dummy data
-# Adjust n_features to match your model's expected input (e.g., 10 features for simplicity)
-X, y = make_classification(n_samples=100, n_features=10, n_classes=2, random_state=42)
+# Adjust n_features to match model's expected input
+X, y = make_classification(n_samples=100,
+                           n_features=10,
+                           n_classes=2,
+                           random_state=42)
 
 # Create DataFrames
-# Assuming your model expects specific feature names, you can rename columns accordingly
-feature_names = ['CreditScore', 'Geography', 'Gender', 'Age', 'Tenure', 
-                 'Balance', 'NumOfProducts', 'HasCrCard', 'IsActiveMember', 'EstimatedSalary']
-X_df = pd.DataFrame(X, columns=feature_names[:X.shape[1]])  # Adjust to match number of features
+# Assuming model expects specific feature names
+feature_names = ['CreditScore', 'Geography', 'Gender',
+                 'Age', 'Tenure', 'Balance', 'NumOfProducts',
+                 'HasCrCard', 'IsActiveMember', 'EstimatedSalary']
+X_df = pd.DataFrame(X, columns=feature_names[:X.shape[1]])
 y_df = pd.DataFrame({'Churn': y})
 
 # Save to CSV files

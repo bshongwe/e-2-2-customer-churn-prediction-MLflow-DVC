@@ -29,7 +29,9 @@ def transform_data(df: pd.DataFrame, output_path: Path) -> None:
     """Transform the data and save to output path."""
     try:
         # Define features for modeling (exclude identifiers and target)
-        numeric_features = ['CreditScore', 'Age', 'Tenure', 'Balance', 'NumOfProducts', 'EstimatedSalary']
+        numeric_features = ['CreditScore', 'Age',
+                            'Tenure', 'Balance',
+                            'NumOfProducts', 'EstimatedSalary']
         categorical_features = ['Geography', 'Gender']
         target_column = 'Exited'
 

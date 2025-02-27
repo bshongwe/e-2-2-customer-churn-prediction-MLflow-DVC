@@ -38,7 +38,7 @@ def load_test_data(directory='.'):
     
     # Assuming we only want the first match found
     X_test = pd.read_csv(test_data_files[0])
-    y_test = pd.read_csv(test_label_files[0])['Churn'].values  # Assuming 'Churn' is your target variable
+    y_test = pd.read_csv(test_label_files[0])['Churn'].values
     
     return X_test, y_test
 
