@@ -1,4 +1,4 @@
-![Visits Badge](https://badges.pufler.dev/visits/bshongwe/e-2-2-customer-churn-prediction-MLflow-DVC)
+![Visits Badge](https://hits.sh/github.com/bshongwe/e-2-2-customer-churn-prediction-MLflow-DVC.svg?style=flat-square&label=Visits&color=blue)
 ![GitHub Repo Stars](https://img.shields.io/github/stars/bshongwe/e-2-2-customer-churn-prediction-MLflow-DVC)
 ![GitHub Forks](https://img.shields.io/github/forks/bshongwe/e-2-2-customer-churn-prediction-MLflow-DVC)
 ![GitHub Issues](https://img.shields.io/github/issues/bshongwe/e-2-2-customer-churn-prediction-MLflow-DVC)
